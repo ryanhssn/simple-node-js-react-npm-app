@@ -1,13 +1,33 @@
-FROM jenkins/jenkins:2.263.1-lts-slim
+FROM jenkins/jenkins:lts
+
 USER root
-RUN apt-get update && apt-get install -y apt-transport-https \
-       ca-certificates curl gnupg2 \
-       software-properties-common
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
-RUN apt-key fingerprint 0EBFCD88
-RUN add-apt-repository \
-       "deb [arch=amd64] https://download.docker.com/linux/debian \
-       $(lsb_release -cs) stable"
-RUN apt-get update && apt-get install -y docker-ce-cli
-USER jenkins
-RUN jenkins-plugin-cli --plugins blueocean:1.24.3
+
+#Extending image
+FROM node:carbon
+
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get -y install autoconf automake libtool nasm pkg-config git apt-utils
+
+#create app directory
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
+
+#versions
+RUN npm -v
+RUN node -v
+
+# install app dependencies
+COPY package.json /usr/src/app/
+COPY package-lock.json /usr/src/app/
+
+RUN npm install
+
+#bundle app source
+COPY . /usr/src/app
+
+#env variables
+ENV NODE_ENV test
+
+#Main command
+CMD [ "npm", "test" ]
