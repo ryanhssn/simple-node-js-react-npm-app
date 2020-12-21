@@ -9,15 +9,18 @@ node {
       sh 'docker -v'
       sh 'printenv'
     }
-    stage('Build docker test') {
-      sh 'docker build -t react-test -f Dockerfile.test --no-cache'
+    stage('Build Docker test'){
+     sh 'docker build -t react-test -f Dockerfile.test --no-cache .'
     }
-    stage('Clean docker test') {
+    stage('Docker test'){
+      sh 'docker run --rm react-test'
+    }
+    stage('Clean Docker test'){
       sh 'docker rmi react-test'
     }
-    stage('Deploy') {
-      if (env.BRANCH_NAME == 'master') {
-        sh 'docker build -t react-app --no-cache'
+    stage('Deploy'){
+      if(env.BRANCH_NAME == 'master'){
+        sh 'docker build -t react-app --no-cache .'
         sh 'docker tag react-app localhost:5000/react-app'
         sh 'docker push localhost:5000/react-app'
         sh 'docker rmi -f react-app localhost:5000/react-app'
@@ -25,6 +28,6 @@ node {
     }
   }
   catch (err) {
-    throw err;
+    throw err
   }
 }
